@@ -3,4 +3,9 @@
     <string name="your_notes">Your Notes</string>
     <string name="error">Error</string>
     <string name="saved">Saved</string>
+    <string name="audio_name">Audio name</string>
+    <string name="cancel">cancel</string>
+    <string name="save">save</string>
+    <string name="enter_a_name">Enter a name</string>
+    <string name="your_list_is_empty">Your list is empty</string>
 </resources>

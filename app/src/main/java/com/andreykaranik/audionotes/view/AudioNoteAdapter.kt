@@ -1,4 +1,4 @@
-package com.andreykaranik.audionotes
+package com.andreykaranik.audionotes.view
 
 import android.util.Log
 import android.view.LayoutInflater
@@ -11,12 +11,15 @@ import android.widget.PopupMenu
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.andreykaranik.audionotes.R
 import com.andreykaranik.audionotes.model.AudioNote
 
 
 interface AudioNoteActionListener {
     fun onPlay(audioNote: AudioNote)
     fun onPause(audioNote: AudioNote)
+
+    fun isPlaying(): Boolean
 }
 
 class AudioNoteAdapter(private val audioNoteActionListener: AudioNoteActionListener) : RecyclerView.Adapter<AudioNoteAdapter.AudioNoteHolder>(), View.OnClickListener {
@@ -40,6 +43,8 @@ class AudioNoteAdapter(private val audioNoteActionListener: AudioNoteActionListe
         holder.playButton.tag = audioNote
 
         holder.nameTextView.text = audioNote.name
+        holder.dateTextView.text = audioNote.date
+        holder.timeTextView.text = audioNote.duration.toString()
     }
 
     override fun getItemCount(): Int = notes.size
@@ -55,7 +60,16 @@ class AudioNoteAdapter(private val audioNoteActionListener: AudioNoteActionListe
         val audioNote = v.tag as AudioNote
         when (v.id) {
             R.id.note_play_button -> {
-                audioNoteActionListener.onPlay(audioNote)
+                val button = v as ImageButton
+                if (!audioNoteActionListener.isPlaying()) {
+                    audioNoteActionListener.onPlay(audioNote)
+                    button.setBackgroundResource(R.drawable.dark_round_button)
+                    button.setImageResource(R.drawable.ic_round_pause)
+                } else {
+                    audioNoteActionListener.onPause(audioNote)
+                    button.setBackgroundResource(R.drawable.round_button)
+                    button.setImageResource(R.drawable.ic_round_play_arrow)
+                }
             }
             else -> {}
         }

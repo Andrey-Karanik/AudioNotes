@@ -7,7 +7,12 @@ import android.os.Environment
 import android.util.Log
 import com.andreykaranik.audionotes.task.SimpleTask
 import com.andreykaranik.audionotes.task.Task
+import org.json.JSONArray
+import org.json.JSONObject
+import org.json.JSONTokener
 import java.io.File
+import java.io.InputStreamReader
+import java.io.OutputStreamWriter
 import java.util.concurrent.Callable
 
 typealias AudioNoteListener = (notes: List<AudioNote>) -> Unit
@@ -20,7 +25,6 @@ class AudioNoteService(private val context : Context) {
     private var player: MediaPlayer? = null
 
     fun loadAudioNotes(): Task<Unit> = SimpleTask<Unit>(Callable {
-        Thread.sleep(2000)
         isLoaded = true
         notifyChanges()
     })
@@ -66,8 +70,8 @@ class AudioNoteService(private val context : Context) {
         return@Callable
     })
 
-    fun addAudioNote(id: Long, name: String) {
-        notes.add(AudioNote(id, name))
+    fun addAudioNote(id: Long, name: String, date: String, duration: Long) {
+        notes.add(AudioNote(id, name, date, duration))
         notifyChanges()
     }
 

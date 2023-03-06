@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AudioNotes</string>
+    <string name="your_notes">Ваши записи</string>
+    <string name="error">Ошибка</string>
+    <string name="saved">Сохранено</string>
+    <string name="audio_name">Название аудио</string>
+    <string name="cancel">Отменить</string>
+    <string name="save">Сохранить</string>
+    <string name="enter_a_name">Введите название</string>
+    <string name="your_list_is_empty">Ваш список пустой</string>
+</resources>

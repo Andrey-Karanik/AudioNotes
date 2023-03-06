@@ -32,12 +32,25 @@
         app:layout_constraintTop_toBottomOf="@+id/textView"
         tools:listitem="@layout/audio_note_item" />
 
+    <TextView
+        android:id="@+id/empty_list_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/your_list_is_empty"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toBottomOf="@+id/recycler_view"
+        app:layout_constraintEnd_toEndOf="@+id/recycler_view"
+        app:layout_constraintStart_toStartOf="@+id/recycler_view"
+        app:layout_constraintTop_toTopOf="@+id/recycler_view" />
+
+
     <ImageButton
         android:id="@+id/record_button"
         android:layout_width="80dp"
         android:layout_height="80dp"
         android:background="@drawable/round_button"
         android:src="@drawable/ic_round_mic"
+        android:elevation="6dp"
         android:layout_marginBottom="25dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
