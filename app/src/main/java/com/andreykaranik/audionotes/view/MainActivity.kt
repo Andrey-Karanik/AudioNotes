@@ -70,13 +70,17 @@ class MainActivity : AppCompatActivity() {
 
         emptyListTextView = findViewById(R.id.empty_list_text_view)
 
-        viewModel.noteItems.observe(this, Observer {
+        viewModel.notes.observe(this, Observer {
             adapter.notes = it
             if (viewModel.isEmpty()) {
                 emptyListTextView.visibility = View.VISIBLE
             } else {
                 emptyListTextView.visibility = View.GONE
             }
+        })
+
+        viewModel.idIsPlaying.observe(this, Observer {
+            adapter.currentIdIsPlaying = it
         })
 
         viewModel.actionShowToast.observe(this, Observer {

@@ -13,16 +13,21 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.andreykaranik.audionotes.R
 import com.andreykaranik.audionotes.model.AudioNote
-import com.andreykaranik.audionotes.viewmodel.AudioNoteItem
 
 
 interface AudioNoteActionListener {
     fun onPlay(audioNote: AudioNote)
     fun onPause(audioNote: AudioNote)
+
 }
 
 class AudioNoteAdapter(private val audioNoteActionListener: AudioNoteActionListener) : RecyclerView.Adapter<AudioNoteAdapter.AudioNoteHolder>(), View.OnClickListener {
-    var notes: List<AudioNoteItem> = emptyList()
+    var notes: List<AudioNote> = emptyList()
+        set(newValue) {
+            field = newValue
+            notifyDataSetChanged()
+        }
+    var currentIdIsPlaying: Long = -1
         set(newValue) {
             field = newValue
             notifyDataSetChanged()
@@ -36,17 +41,16 @@ class AudioNoteAdapter(private val audioNoteActionListener: AudioNoteActionListe
 
     override fun onBindViewHolder(holder: AudioNoteHolder, position: Int) {
 
-        val audioNoteItem = notes[position]
-        val audioNote = audioNoteItem.audioNote
+        val audioNote = notes[position]
 
-        holder.itemView.tag = audioNoteItem
-        holder.playButton.tag = audioNoteItem
+        holder.itemView.tag = audioNote
+        holder.playButton.tag = audioNote
 
         holder.nameTextView.text = audioNote.name
         holder.dateTextView.text = audioNote.date
         holder.timeTextView.text = audioNote.duration.toString()
 
-        if (audioNoteItem.isPlaying) {
+        if (currentIdIsPlaying == audioNote.id) {
             holder.playButton.setBackgroundResource(R.drawable.dark_round_button)
             holder.playButton.setImageResource(R.drawable.ic_round_pause)
         } else {
@@ -65,13 +69,13 @@ class AudioNoteAdapter(private val audioNoteActionListener: AudioNoteActionListe
     }
 
     override fun onClick(v: View) {
-        val audioNoteItem = v.tag as AudioNoteItem
+        val audioNote = v.tag as AudioNote
         when (v.id) {
             R.id.note_play_button -> {
-                if (!audioNoteItem.isPlaying) {
-                    audioNoteActionListener.onPlay(audioNoteItem.audioNote)
+                if (currentIdIsPlaying != audioNote.id) {
+                    audioNoteActionListener.onPlay(audioNote)
                 } else {
-                    audioNoteActionListener.onPause(audioNoteItem.audioNote)
+                    audioNoteActionListener.onPause(audioNote)
                 }
             }
             else -> {}

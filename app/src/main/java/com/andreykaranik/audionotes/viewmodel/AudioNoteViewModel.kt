@@ -6,21 +6,16 @@ import com.andreykaranik.audionotes.R
 import com.andreykaranik.audionotes.model.AudioNote
 import com.andreykaranik.audionotes.model.AudioNoteListener
 import com.andreykaranik.audionotes.model.AudioNoteService
+import com.andreykaranik.audionotes.model.IdIsPlayingListener
 import com.andreykaranik.audionotes.view.AudioNoteActionListener
 import com.andreykaranik.audionotes.view.AudioNoteDialogListener
-
-
-data class AudioNoteItem(
-    val audioNote: AudioNote,
-    var isPlaying: Boolean
-)
 
 class AudioNoteViewModel(
     private val audioNoteService: AudioNoteService
 ) : BaseViewModel(), AudioNoteActionListener, AudioNoteDialogListener {
 
-    private val _noteItems = MutableLiveData<List<AudioNoteItem>>()
-    val noteItems: LiveData<List<AudioNoteItem>> = _noteItems
+    private val _notes = MutableLiveData<List<AudioNote>>()
+    val notes: LiveData<List<AudioNote>> = _notes
 
     private val _actionShowToast = MutableLiveData<Event<Int>>()
     val actionShowToast: LiveData<Event<Int>> = _actionShowToast
@@ -37,20 +32,19 @@ class AudioNoteViewModel(
     private val _isRecording = MutableLiveData<Boolean>()
     val isRecording: LiveData<Boolean> = _isRecording
 
-    private val noteIdsIsPlaying = mutableSetOf<Long>()
-    private var notes: List<AudioNote> = emptyList()
-        set(value) {
-            field = value
-            notifyUpdates()
-        }
+    private val _idIsPlaying = MutableLiveData<Long>()
+    val idIsPlaying: LiveData<Long> = _idIsPlaying
 
-
-    private val listener: AudioNoteListener = {
-        notes = it
+    private val audioNoteListener: AudioNoteListener = {
+        _notes.value = it
+    }
+    private val idIsPlayingListener: IdIsPlayingListener = {
+        _idIsPlaying.postValue(it)
     }
 
     init {
-        audioNoteService.addListener(listener)
+        audioNoteService.addAudioNoteListener(audioNoteListener)
+        audioNoteService.addIdIsPlayingListener(idIsPlayingListener)
         _isRecording.value = false
         loadAudioNotes()
     }
@@ -88,22 +82,15 @@ class AudioNoteViewModel(
 
     fun startPlaying(id: Long) {
         audioNoteService.startPlaying(id)
-            .onSuccess {
-                noteIdsIsPlaying.add(id)
-                notifyUpdates()
-            }
             .onError {
                 _actionShowToast.value = Event(R.string.error)
+                it.printStackTrace()
             }
             .autoCancel()
     }
 
     fun stopPlaying(id: Long) {
-        audioNoteService.stopPlaying()
-            .onSuccess {
-                noteIdsIsPlaying.remove(id)
-                notifyUpdates()
-            }
+        audioNoteService.stopPlaying(id)
             .onError {
                 _actionShowToast.value = Event(R.string.error)
             }
@@ -116,7 +103,8 @@ class AudioNoteViewModel(
 
     override fun onCleared() {
         super.onCleared()
-        audioNoteService.removeListener(listener)
+        audioNoteService.removeAudioNoteListener(audioNoteListener)
+        audioNoteService.removeIdIsPlayingListener(idIsPlayingListener)
     }
 
     override fun onPlay(audioNote: AudioNote) {
@@ -126,10 +114,6 @@ class AudioNoteViewModel(
     override fun onPause(audioNote: AudioNote) {
         stopPlaying(audioNote.id)
 
-    }
-
-    private fun isPlaying(audioNote: AudioNote): Boolean {
-        return noteIdsIsPlaying.contains(audioNote.id)
     }
 
     override fun onCancel() {}
@@ -144,10 +128,5 @@ class AudioNoteViewModel(
             }
             .autoCancel()
     }
-
-    private fun notifyUpdates() {
-        _noteItems.postValue(notes.map {note -> AudioNoteItem(note, isPlaying(note)) })
-    }
-
 
 }

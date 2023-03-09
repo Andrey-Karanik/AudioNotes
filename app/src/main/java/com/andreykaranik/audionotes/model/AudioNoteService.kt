@@ -16,17 +16,20 @@ import java.io.OutputStreamWriter
 import java.util.concurrent.Callable
 
 typealias AudioNoteListener = (notes: List<AudioNote>) -> Unit
+typealias IdIsPlayingListener = (idIsPlaying: Long) -> Unit
 
 class AudioNoteService(private val context : Context) {
     private var notes = mutableListOf<AudioNote>()
+    private var currentIdIsPlaying : Long = -1
     private var isLoaded = false
-    private var listeners = mutableSetOf<AudioNoteListener>()
+    private var audioNoteListeners = mutableSetOf<AudioNoteListener>()
+    private var idIsPlayingListeners = mutableSetOf<IdIsPlayingListener>()
     private var recorder: MediaRecorder? = null
     private var player: MediaPlayer? = null
 
     fun loadAudioNotes(): Task<Unit> = SimpleTask<Unit>(Callable {
         isLoaded = true
-        notifyChanges()
+        notifyAudioNoteChanges()
     })
 
     fun startRecording(): Task<Unit> = SimpleTask<Unit>(Callable {
@@ -49,16 +52,27 @@ class AudioNoteService(private val context : Context) {
     })
 
     fun startPlaying(id: Long): Task<Unit> = SimpleTask<Unit>(Callable {
+        if (currentIdIsPlaying != -1L) {
+            stopPlaying(currentIdIsPlaying)
+        }
         player = MediaPlayer().apply {
             setDataSource("${context.externalCacheDir?.absolutePath}/${notes.find {it.id == id}?.name}.3gp")
+            setOnCompletionListener {
+                currentIdIsPlaying = -1
+                notifyIdIsPlayingNoteChanges()
+            }
             prepare()
             start()
+            currentIdIsPlaying = id
+            notifyIdIsPlayingNoteChanges()
         }
     })
 
-    fun stopPlaying(): Task<Unit> = SimpleTask<Unit>(Callable {
+    fun stopPlaying(id: Long): Task<Unit> = SimpleTask<Unit>(Callable {
         player?.release()
         player = null
+        currentIdIsPlaying = -1
+        notifyIdIsPlayingNoteChanges()
     })
 
     fun renameRecordFile(fileName: String): Task<Unit> = SimpleTask<Unit>(Callable {
@@ -72,32 +86,46 @@ class AudioNoteService(private val context : Context) {
 
     fun addAudioNote(id: Long, name: String, date: String, duration: Long) {
         notes.add(AudioNote(id, name, date, duration))
-        notifyChanges()
+        notifyAudioNoteChanges()
     }
 
     fun getAudioNotesSize() : Long = notes.size.toLong()
 
 
-    fun addListener(listener: AudioNoteListener) {
-        listeners.add(listener)
+    fun addAudioNoteListener(listener: AudioNoteListener) {
+        audioNoteListeners.add(listener)
         if (isLoaded) {
             listener(notes)
         }
     }
 
-    fun removeListener(listener: AudioNoteListener) {
-        listeners.remove(listener)
+    fun removeAudioNoteListener(listener: AudioNoteListener) {
+        audioNoteListeners.remove(listener)
         if (isLoaded) {
             listener(notes)
         }
     }
 
-    private fun notifyChanges() {
+    private fun notifyAudioNoteChanges() {
         if (!isLoaded) {
             return
         }
-        listeners.forEach {
+        audioNoteListeners.forEach {
             it(notes)
+        }
+    }
+
+    fun addIdIsPlayingListener(listener: IdIsPlayingListener) {
+        idIsPlayingListeners.add(listener)
+    }
+
+    fun removeIdIsPlayingListener(listener: IdIsPlayingListener) {
+        idIsPlayingListeners.remove(listener)
+    }
+
+    private fun notifyIdIsPlayingNoteChanges() {
+        idIsPlayingListeners.forEach {
+            it(currentIdIsPlaying)
         }
     }
 }
