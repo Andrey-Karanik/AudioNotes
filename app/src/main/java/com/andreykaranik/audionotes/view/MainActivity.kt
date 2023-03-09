@@ -70,7 +70,7 @@ class MainActivity : AppCompatActivity() {
 
         emptyListTextView = findViewById(R.id.empty_list_text_view)
 
-        viewModel.notes.observe(this, Observer {
+        viewModel.noteItems.observe(this, Observer {
             adapter.notes = it
             if (viewModel.isEmpty()) {
                 emptyListTextView.visibility = View.VISIBLE
@@ -85,6 +85,16 @@ class MainActivity : AppCompatActivity() {
 
         viewModel.actionShowDialog.observe(this, Observer {
             showDialog()
+        })
+
+        viewModel.isRecording.observe(this, Observer {
+            if (it) {
+                recordButton.setBackgroundResource(R.drawable.dark_round_button)
+                recordButton.setImageResource(R.drawable.ic_round_stop)
+            } else {
+                recordButton.setBackgroundResource(R.drawable.round_button)
+                recordButton.setImageResource(R.drawable.ic_round_mic)
+            }
         })
 
         viewModel.actionStartRecordingSuccess.observe(this, Observer {
@@ -104,17 +114,12 @@ class MainActivity : AppCompatActivity() {
         recyclerView.addItemDecoration(itemDecorator)
         recordButton = findViewById<ImageButton>(R.id.record_button)
         recordButton.setOnClickListener {
-            if (!viewModel.isRecording) {
+            if (viewModel.isRecording.value == false) {
                 viewModel.startRecording()
-                recordButton.setBackgroundResource(R.drawable.dark_round_button)
-                recordButton.setImageResource(R.drawable.ic_round_stop)
-                recordButton.isEnabled = false
             } else {
                 viewModel.stopRecording()
-                recordButton.setBackgroundResource(R.drawable.round_button)
-                recordButton.setImageResource(R.drawable.ic_round_mic)
-                recordButton.isEnabled = false
             }
+            recordButton.isEnabled = false
         }
 
     }

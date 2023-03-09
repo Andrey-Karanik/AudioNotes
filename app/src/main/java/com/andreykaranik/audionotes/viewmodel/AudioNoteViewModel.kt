@@ -12,15 +12,15 @@ import com.andreykaranik.audionotes.view.AudioNoteDialogListener
 
 data class AudioNoteItem(
     val audioNote: AudioNote,
-    val isInProgress: Boolean
+    var isPlaying: Boolean
 )
 
 class AudioNoteViewModel(
     private val audioNoteService: AudioNoteService
 ) : BaseViewModel(), AudioNoteActionListener, AudioNoteDialogListener {
 
-    private val _notes = MutableLiveData<List<AudioNote>>()
-    val notes: LiveData<List<AudioNote>> = _notes
+    private val _noteItems = MutableLiveData<List<AudioNoteItem>>()
+    val noteItems: LiveData<List<AudioNoteItem>> = _noteItems
 
     private val _actionShowToast = MutableLiveData<Event<Int>>()
     val actionShowToast: LiveData<Event<Int>> = _actionShowToast
@@ -34,17 +34,24 @@ class AudioNoteViewModel(
     private val _actionStopRecordingSuccess = MutableLiveData<Event<Boolean>>()
     val actionStopRecordingSuccess: LiveData<Event<Boolean>> = _actionStopRecordingSuccess
 
-    private var _isPlaying = false
+    private val _isRecording = MutableLiveData<Boolean>()
+    val isRecording: LiveData<Boolean> = _isRecording
 
-    var isRecording = false
+    private val noteIdsIsPlaying = mutableSetOf<Long>()
+    private var notes: List<AudioNote> = emptyList()
+        set(value) {
+            field = value
+            notifyUpdates()
+        }
 
 
     private val listener: AudioNoteListener = {
-        _notes.value = it
+        notes = it
     }
 
     init {
         audioNoteService.addListener(listener)
+        _isRecording.value = false
         loadAudioNotes()
     }
 
@@ -55,7 +62,7 @@ class AudioNoteViewModel(
     fun startRecording() {
         audioNoteService.startRecording()
             .onSuccess {
-                isRecording = true
+                _isRecording.value = true
                 _actionStartRecordingSuccess.value = Event(true)
             }
             .onError {
@@ -68,7 +75,7 @@ class AudioNoteViewModel(
     fun stopRecording() {
         audioNoteService.stopRecording()
             .onSuccess {
-                isRecording = false
+                _isRecording.value = false
                 _actionShowDialog.value = Event(Unit)
                 _actionStopRecordingSuccess.value = Event(true)
             }
@@ -81,16 +88,26 @@ class AudioNoteViewModel(
 
     fun startPlaying(id: Long) {
         audioNoteService.startPlaying(id)
+            .onSuccess {
+                noteIdsIsPlaying.add(id)
+                notifyUpdates()
+            }
             .onError {
                 _actionShowToast.value = Event(R.string.error)
             }
             .autoCancel()
-        _isPlaying = true
     }
 
-    fun stopPlaying() {
-        audioNoteService.stopPlaying().autoCancel()
-        _isPlaying = false
+    fun stopPlaying(id: Long) {
+        audioNoteService.stopPlaying()
+            .onSuccess {
+                noteIdsIsPlaying.remove(id)
+                notifyUpdates()
+            }
+            .onError {
+                _actionShowToast.value = Event(R.string.error)
+            }
+            .autoCancel()
     }
 
     fun isEmpty(): Boolean {
@@ -107,11 +124,12 @@ class AudioNoteViewModel(
     }
 
     override fun onPause(audioNote: AudioNote) {
-        stopPlaying()
+        stopPlaying(audioNote.id)
+
     }
 
-    override fun isPlaying(): Boolean {
-        return _isPlaying
+    private fun isPlaying(audioNote: AudioNote): Boolean {
+        return noteIdsIsPlaying.contains(audioNote.id)
     }
 
     override fun onCancel() {}
@@ -125,6 +143,10 @@ class AudioNoteViewModel(
                 _actionShowToast.value = Event(R.string.error)
             }
             .autoCancel()
+    }
+
+    private fun notifyUpdates() {
+        _noteItems.postValue(notes.map {note -> AudioNoteItem(note, isPlaying(note)) })
     }
 
 

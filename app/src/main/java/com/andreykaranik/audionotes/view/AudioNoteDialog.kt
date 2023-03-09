@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.widget.EditText
 import androidx.appcompat.app.AppCompatDialogFragment
 import com.andreykaranik.audionotes.R
-import com.andreykaranik.audionotes.model.AudioNote
 
 interface AudioNoteDialogListener {
     fun onCancel()
