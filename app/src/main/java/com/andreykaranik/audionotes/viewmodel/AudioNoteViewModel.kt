@@ -121,7 +121,7 @@ class AudioNoteViewModel(
     override fun onSave(name: String) {
         audioNoteService.renameRecordFile(name)
             .onSuccess {
-                audioNoteService.addAudioNote(audioNoteService.getAudioNotesSize(), name, "Today", audioNoteService.getAudioNoteDuration(name))
+                audioNoteService.addAudioNote(audioNoteService.getAudioNotesSize(), name, audioNoteService.getAudioNoteDate(name), audioNoteService.getAudioNoteDuration(name))
             }
             .onError {
                 _actionShowToast.value = Event(R.string.error)

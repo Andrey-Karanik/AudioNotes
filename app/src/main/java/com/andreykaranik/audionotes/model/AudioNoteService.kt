@@ -7,6 +7,7 @@ import android.media.MediaRecorder
 import com.andreykaranik.audionotes.task.SimpleTask
 import com.andreykaranik.audionotes.task.Task
 import java.io.File
+import java.util.Date
 import java.util.concurrent.Callable
 
 
@@ -134,5 +135,11 @@ class AudioNoteService(private val context : Context) {
         val durationStr =
             mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
         return durationStr!!.toLong()
+    }
+
+    fun getAudioNoteDate(fileName: String): String {
+        val file = File("${context.externalCacheDir?.absolutePath}/${fileName}.3gp")
+        val date = Date(file.lastModified())
+        return date.toString()
     }
 }
