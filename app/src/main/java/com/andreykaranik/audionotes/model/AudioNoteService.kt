@@ -1,19 +1,14 @@
 package com.andreykaranik.audionotes.model
 
 import android.content.Context
+import android.media.MediaMetadataRetriever
 import android.media.MediaPlayer
 import android.media.MediaRecorder
-import android.os.Environment
-import android.util.Log
 import com.andreykaranik.audionotes.task.SimpleTask
 import com.andreykaranik.audionotes.task.Task
-import org.json.JSONArray
-import org.json.JSONObject
-import org.json.JSONTokener
 import java.io.File
-import java.io.InputStreamReader
-import java.io.OutputStreamWriter
 import java.util.concurrent.Callable
+
 
 typealias AudioNoteListener = (notes: List<AudioNote>) -> Unit
 typealias IdIsPlayingListener = (idIsPlaying: Long) -> Unit
@@ -26,6 +21,8 @@ class AudioNoteService(private val context : Context) {
     private var idIsPlayingListeners = mutableSetOf<IdIsPlayingListener>()
     private var recorder: MediaRecorder? = null
     private var player: MediaPlayer? = null
+
+    private var duration = 0
 
     fun loadAudioNotes(): Task<Unit> = SimpleTask<Unit>(Callable {
         isLoaded = true
@@ -127,5 +124,13 @@ class AudioNoteService(private val context : Context) {
         idIsPlayingListeners.forEach {
             it(currentIdIsPlaying)
         }
+    }
+
+    fun getAudioNoteDuration(fileName: String): Long {
+        val mediaMetadataRetriever = MediaMetadataRetriever()
+        mediaMetadataRetriever.setDataSource("${context.externalCacheDir?.absolutePath}/${fileName}.3gp")
+        val durationStr =
+            mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+        return durationStr!!.toLong()
     }
 }

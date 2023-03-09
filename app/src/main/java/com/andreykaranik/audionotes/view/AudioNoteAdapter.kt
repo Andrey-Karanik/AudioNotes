@@ -12,6 +12,7 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.andreykaranik.audionotes.R
+import com.andreykaranik.audionotes.formatDuration
 import com.andreykaranik.audionotes.model.AudioNote
 
 
@@ -48,7 +49,7 @@ class AudioNoteAdapter(private val audioNoteActionListener: AudioNoteActionListe
 
         holder.nameTextView.text = audioNote.name
         holder.dateTextView.text = audioNote.date
-        holder.timeTextView.text = audioNote.duration.toString()
+        holder.timeTextView.text = formatDuration(audioNote.duration)
 
         if (currentIdIsPlaying == audioNote.id) {
             holder.playButton.setBackgroundResource(R.drawable.dark_round_button)

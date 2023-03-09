@@ -9,7 +9,7 @@ import com.andreykaranik.audionotes.R
 
 interface AudioNoteDialogListener {
     fun onCancel()
-    fun onSave(name: String, date: String, duration: Long)
+    fun onSave(name: String)
 }
 
 class AudioNoteDialog(private val audioNoteDialogListener: AudioNoteDialogListener) : AppCompatDialogFragment() {
@@ -27,7 +27,7 @@ class AudioNoteDialog(private val audioNoteDialogListener: AudioNoteDialogListen
             .setNegativeButton(R.string.cancel) {
                     p0, p1 ->  audioNoteDialogListener.onCancel()}
             .setPositiveButton(R.string.save) {
-                    p0, p1 ->  audioNoteDialogListener.onSave(noteNameEditText.text.toString(), "Today", 120)}
+                    p0, p1 ->  audioNoteDialogListener.onSave(noteNameEditText.text.toString())}
 
         if (view != null) {
             noteNameEditText = view.findViewById(R.id.note_name_edit_text)
