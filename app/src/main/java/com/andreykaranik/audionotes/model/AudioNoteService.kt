@@ -50,7 +50,9 @@ class AudioNoteService(private val context : Context) {
 
     fun startPlaying(id: Long): Task<Unit> = SimpleTask<Unit>(Callable {
         if (currentIdIsPlaying != -1L) {
-            stopPlaying(currentIdIsPlaying)
+            player?.release()
+            player = null
+            currentIdIsPlaying = -1
         }
         player = MediaPlayer().apply {
             setDataSource("${context.externalCacheDir?.absolutePath}/${notes.find {it.id == id}?.name}.3gp")
